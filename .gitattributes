@@ -1,0 +1,11 @@
+# Keep the repository LF so every checkout sees the same bytes, whatever the
+# platform. Tools that need CRLF can set it per clone.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
