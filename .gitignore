@@ -1,0 +1,23 @@
+# Agent scratch space: logs, dumps, one-off scripts, fetched pages.
+.tmp/
+
+# Scratch a tool writes in the working directory without being asked, because the
+# Files section in AGENTS.md cannot redirect it. Delete the output when the task
+# is done: being ignored is not a licence to leave it.
+.playwright-cli/
+.playwright-mcp/
+
+# Written by `openspec update`; the tool owns it.
+.agents/skills/.openspec-target
+
+# Local secrets and environment
+.env
+.env.*
+!.env.example
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

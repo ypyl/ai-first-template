@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# The gate. Git runs hooks from the top of the working tree, so the path is
+# relative. `git config core.hooksPath .githooks` enables this once per clone.
+
+set -uo pipefail
+
+exec bash scripts/check-change.sh
