@@ -1,0 +1,17 @@
+# Agent scratch space: logs, dumps, one-off scripts, fetched pages.
+.tmp/
+
+# Written by `openspec update`; the tool owns it.
+.agents/skills/.openspec-target
+
+# Local secrets and environment
+.env
+.env.*
+!.env.example
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

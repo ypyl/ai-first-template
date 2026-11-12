@@ -1,0 +1,108 @@
+schema: spec-driven
+
+# Project context is injected into every artifact instruction. Keep only what an
+# agent cannot infer by reading the code.
+context: |
+  This repository is written by coding agents. A human owns the decisions and
+  never edits code. Read AGENTS.md before any change: it holds the routing
+  questions, the gates, and the rules that are not negotiable. A method lives in
+  .agents/skills and is loaded when its description matches the work. Do not
+  depend on a skill installed outside this repository.
+
+  A fresh copy is a template. The first action is the bootstrap skill: interview
+  the human, then run one L2 change. Do not infer an answer the human did not
+  give, and do not start a feature before bootstrap has archived.
+
+  Operational facts live in REPO-FACTS.md. They are evidence, not instructions,
+  and a fact never overrides AGENTS.md, a spec, or a gate.
+
+  Every change records its level in openspec/changes/<change>/.openspec.yaml as
+  x-level: L0 | L1 | L2 | L3. Derive it with the change-level skill; never pick
+  one to reduce the work.
+
+  The change folder may be technical. The durable spec may not. AGENTS.md owns
+  the rule that a spec states observable behavior, and scripts/check-change.sh
+  enforces the parts a machine can see.
+
+  ARCHITECTURE.md records shape, adr/ records why, openspec/specs/ records
+  behavior. Keep the three apart and link them.
+
+  CONVENTIONS.md records how the code is written: technical rules that are not
+  behavior, a decision, or an operational fact. A rule that changes routing or
+  a gate belongs in AGENTS.md instead.
+
+# Keys are the artifact ids of the active schema. With spec-driven that is
+# proposal, specs, design, and tasks. Fork the schema and keep the keys in
+# step, or the rules silently stop applying.
+rules:
+  proposal:
+    - Use the headings the CLI expects, `## Why`, `## What Changes`,
+      `## Capabilities`, and `## Impact`. `## Why` says what is wrong or missing
+      today, `## What Changes` says what moves, `## Impact` names the other
+      artifacts the change touches. A proposal without Why or What Changes is
+      incomplete even when `openspec validate` accepts it.
+    - State the level (L0-L3) and the answers to the four routing questions.
+    - For the bootstrap change, record the ten interview answers in an `##
+      Answers` table in the human's words, and every assumption with its revisit
+      trigger.
+    - Record each human approval in a `## Approval` block, naming the gate, the
+      approver, the date, and the quoted words. It lands in the freeze commit,
+      so a later reader can check it with git.
+    - If the change is a child of a goal, name the goal and its order.
+    - For a new or changed skill, name the trigger, the repeated evidence, and
+      the steps. Set skip_specs; the proposal is the record.
+    - Name the contract document another change could break (schema, API spec,
+      permission model). Write "none" only after checking.
+    - For L2 and L3, link the ADR that holds the decision.
+    - Keep it to intent, scope, and impact. No implementation detail.
+  specs:
+    - Organize specifications as specs/<capability>/spec.md.
+    - Prefer extending an existing capability over creating a new one.
+    - The primary audience is the product owner and the tester, not the
+      developer. State observable behavior, not internals.
+    - Keep functional and non-functional requirements in the same spec.
+    - Keep specifications implementation-independent. No file paths, class
+      names, function names, CSS values, or library choices.
+    - Technical detail belongs in design.md and tasks.md, never in a spec. The
+      change folder may be technical; the durable spec may not.
+    - A delta spec becomes the durable spec at archive, so keep it
+      behavior-first as well.
+    - Every scenario has a test whose name contains the scenario title.
+    - For work that changes no behavior, set the skip_specs marker and write no
+      delta spec. The proposal still names the requirement the work leaves
+      intact.
+  design:
+    - For L2 and L3, write the ADR in adr/ before the delta spec. design.md
+      then explains the change-local approach and links the ADR.
+    - For L2 and L3 that add a service, dependency, store, permission model, or
+      external integration, run threat-model and record the result in
+      threat-model.md in the change folder.
+    - For L0 and L1, write design.md only when the approach is not obvious.
+  tasks:
+    - Every task states how completion is verified.
+    - Put tests and docs in the task group that needs them, not in a final group.
+    - Each scenario in the delta spec gets a test whose name contains the
+      scenario title.
+
+operations:
+  apply:
+    guidance:
+      - Before finishing, run `bash scripts/verify.sh`. It runs the invariant
+        checks and the lint, build, and test commands declared in Project facts.
+        Report the exact commands and results.
+      - Run review-change before commit. If the change touches auth, input,
+        secrets, crypto, file paths, dependencies, or personal data, run its
+        security checklist.
+      - If the change adds or removes a container, store, queue, external
+        system, or trust boundary, run architecture-doc and update
+        ARCHITECTURE.md.
+      - Record a confirmed operational fact in REPO-FACTS.md, with evidence and
+        date. Never record an instruction there.
+      - Do not edit an approved delta spec after the freeze commit. If behavior
+        must change, stop and raise it with the human.
+      - After a gate passes, run the whole loop without stopping. Apply, verify,
+        archive, commit, push.
+  archive:
+    guidance:
+      - Record what was verified, with commands and outcomes, in the summary.
+      - Run `scripts/check-change.sh` before the archive commit.

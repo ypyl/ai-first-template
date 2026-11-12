@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Rejects a commit that cannot be traced back to a change and a level.
+# Enable once per clone: git config core.hooksPath .githooks
+#
+# Skip for a merge commit, a revert, a release, or the first commit of an empty
+# history. Rebuilding the template's single commit is the one case that bypasses
+# this hook: it carries no change to trace, so it is committed with
+# `git commit --amend --no-verify`.
+
+set -uo pipefail
+
+msg_file=${1:?commit message file}
+msg=$(cat "$msg_file")
+
+# Merge commits and fixups carry someone else's message. A release belongs to no
+# change and changes no behavior, so it carries no trailers.
+grep -Eq '^(Merge |fixup!|squash!|Revert )' <<< "$msg" && exit 0
+grep -Eq '^chore: release([[:space:]]|$)' <<< "$msg" && exit 0
+# A history with no commit yet has nothing to trace back from.
+[[ "$(git rev-list --count HEAD 2>/dev/null || echo 0)" -eq 0 ]] && exit 0
+
+missing=()
+grep -Eq '^OpenSpec-Change: .+' <<< "$msg" || missing+=("OpenSpec-Change")
+grep -Eq '^OpenSpec-Level: L[0-3]$' <<< "$msg" || missing+=("OpenSpec-Level")
+
+if [[ ${#missing[@]} -gt 0 ]]; then
+  printf 'Commit message is missing: %s\n' "${missing[*]}" >&2
+  printf 'Add these trailers, one per line at the end of the message:\n' >&2
+  printf '  OpenSpec-Change: <change-name>\n  OpenSpec-Level: L0|L1|L2|L3\n' >&2
+  exit 1
+fi
